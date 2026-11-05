@@ -112,7 +112,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Esto le dice a Django dónde buscar carpetas de estáticos adicionales
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'static', 'mcd_v1'),
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True

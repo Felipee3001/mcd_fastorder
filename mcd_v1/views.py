@@ -26,7 +26,7 @@ def vista_login(request):
                 contrasena = datos.get('password', '')
                 
                 # 🔒 Validación protegida en el backend (Fuera del alcance de DevTools)
-                if usuario == "Felipe Muñoz" and contrasena == "marapa123":
+                if usuario == "Felipe Nuñez" and contrasena == "inacap123":
                     return JsonResponse({'status': 'Ok', 'redirect': '/cocina/'})
                 else:
                     return JsonResponse({'error': 'Usuario o contraseña incorrectos'}, status=401)

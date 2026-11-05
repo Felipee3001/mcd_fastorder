@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import dj_database_url
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -66,13 +67,9 @@ WSGI_APPLICATION = 'mcd_fastorder_backend.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mcd_v1',
-        'USER': 'root',
-        'PASSWORD': 'inacap',
-        'PORT': 3306    
-    }
+    'default': dj_database_url.config(
+        default='postgresql://mcd_db_5o9s_user:x4osz3R3II4z8vApWONgJ1DSEzxWwla3@dpg-dbm088lbedkc73aqhbi0-a/mcd_db_5o9s'
+    )
 }
 
 

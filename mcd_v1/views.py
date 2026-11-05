@@ -23,7 +23,6 @@ def vista_cocina(request):
     """Redirige directamente a la pantalla principal del monitor de cocina"""
     return redirect('pantalla_cocina')
 
-
 # ==========================================
 # 🍔 VISTAS DE MONITORES Y PANTALLAS
 # ==========================================
@@ -49,7 +48,6 @@ def menu_cliente_view(request, id_cliente):
         'id_cliente': id_cliente,
         'productos_json': json.dumps(lista_productos)
     })
-
 
 # ==========================================
 # ⚙️ VISTAS DE API (PROCESAMIENTO ASÍNCRONO)
@@ -128,7 +126,7 @@ def procesar_pedido_express(request):
             for d in detalles_a_crear:
                 DetallePedido.objects.create(
                     idPedido=pedido,
-                    idProducto=d['idProducto'],
+                    idProducto=d['producto'],  # 🌟 CORREGIDO: Cambiado de d['idProducto'] a d['producto']
                     cantidad=d['cantidad'],
                     subtotal=d['subtotal']
                 )

@@ -12,7 +12,29 @@ from .models import Cliente, Producto, PedidoExpress, DetallePedido
 
 @ensure_csrf_cookie
 def vista_login(request):
-    """Renderiza la pantalla inicial de inicio de sesión inyectando la cookie CSRF"""
+    """Maneja el renderizado del login y la validación segura en el servidor"""
+    if request.method == 'POST':
+        try:
+            datos = json.loads(request.body)
+            rol = datos.get('rol')
+            
+            if rol == 'usuario':
+                return JsonResponse({'status': 'Ok', 'redirect': '/cliente/1/'})
+                
+            elif rol == 'admin':
+                usuario = datos.get('username', '').strip()
+                contrasena = datos.get('password', '')
+                
+                # 🔒 Validación protegida en el backend (Fuera del alcance de DevTools)
+                if usuario == "Felipe Muñoz" and contrasena == "marapa123":
+                    return JsonResponse({'status': 'Ok', 'redirect': '/cocina/'})
+                else:
+                    return JsonResponse({'error': 'Usuario o contraseña incorrectos'}, status=401)
+                    
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'JSON inválido'}, status=400)
+            
+    # Si es un método GET, renderiza la página normalmente
     return render(request, 'login.html')
 
 def vista_index(request):
@@ -167,3 +189,4 @@ def cambiar_estado_pedido(request, id_pedido):
         return JsonResponse({'status': 'Ok', 'mensaje': f'Ticket #{id_pedido} actualizado'})
     except PedidoExpress.DoesNotExist:
         return JsonResponse({'error': 'Pedido no encontrado'}, status=404)
+

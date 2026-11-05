@@ -119,7 +119,9 @@
     <script>
         const API_URL = '/fastOrder/';
         const CLIENTE_ID = typeof CLIENTE_ID_DJANGO !== 'undefined' ? CLIENTE_ID_DJANGO : 1;
-        const PRODUCTOS_REALES = typeof PRODUCTOS_DESDE_BD !== 'undefined' ? PRODUCTOS_DESDE_BD : [];
+        
+        // 🌟 CLAVE: Aseguramos la inicialización correcta si viene vacío o indefinido
+        const PRODUCTOS_REALES = typeof PRODUCTOS_DESDE_BD !== 'undefined' && PRODUCTOS_DESDE_BD !== null ? PRODUCTOS_DESDE_BD : [];
         const PRODUCTO_FAVORITO_ID = 1; 
 
         let carritoExpress = {}; 
@@ -161,15 +163,21 @@
             const lista = document.getElementById('lista-productos');
             if (!lista) return;
 
+            // Si no hay productos en la base de datos, mostramos un aviso amigable
+            if (PRODUCTOS_REALES.length === 0) {
+                lista.innerHTML = '<p style="color: #9ca3af; font-size: 0.85rem; text-align: center;">No hay productos registrados en el menú.</p>';
+                return;
+            }
+
             lista.innerHTML = PRODUCTOS_REALES.map(p => {
                 const estaDisponible = p.disponible === 1;
                 const textoBoton = estaDisponible ? '+ Añadir' : 'Sin Stock';
                 const estilosBoton = estaDisponible 
                     ? 'class="btn-express"' 
                     : 'class="btn-express" style="background-color: #fee2e2; color: #ef4444; border-color: #fca5a5; cursor: not-allowed;" disabled';
-
+                
                 const accionBoton = estaDisponible ? `onclick="agregarAlCarrito('${p.id.toString()}')"` : '';
-            
+
                 return `
                     <div class="producto-card">
                         <div>
@@ -204,21 +212,21 @@
         function actualizarBarraCarrito() {
             const totalProductos = Object.values(carritoExpress).reduce((a, b) => a + b, 0);
             document.getElementById('cantidad-items').innerText = `${totalProductos} ${totalProductos === 1 ? 'producto' : 'productos'}`;
-                
+
             let cuentaTotal = 0;
             Object.keys(carritoExpress).forEach(id => {
                 const prod = PRODUCTOS_REALES.find(p => p.id.toString() === id.toString());
                 if (prod) cuentaTotal += prod.precio * carritoExpress[id];
             });
             document.getElementById('precio-total').innerText = `$${cuentaTotal.toLocaleString('es-CL')}`;
-        
+
             const btn = document.getElementById('btn-enviar');
             const visor = document.getElementById('visor-detalles');
-        
+
             if (totalProductos > 0) {
                 btn.removeAttribute('disabled');
                 visor.style.display = 'block';
-            
+
                 visor.innerHTML = Object.keys(carritoExpress).map(id => {
                     const prod = PRODUCTOS_REALES.find(p => p.id.toString() === id.toString());
                     const cant = carritoExpress[id];

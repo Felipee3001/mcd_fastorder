@@ -1,4 +1,5 @@
 from django.urls import path
+from mcd_v1 import views
 from .views import (
     procesar_pedido_express, 
     pantalla_cocina_view, 
@@ -9,8 +10,8 @@ from .views import (
 
 urlpatterns = [
     path('cliente/<int:id_cliente>/', menu_cliente_view, name='menu_express'),
-    path('fastOrder/', procesar_pedido_express, name='fast_order'),
-    path('fastOrder', procesar_pedido_express), 
+    path('fastOrder/<str:id_cliente>', views.menu_cliente_view, name='menu_cliente'),
+    path('fastOrder/', views.procesar_pedido_express), 
     path('cocina/', pantalla_cocina_view, name='pantalla_cocina'),
     path('cocina', pantalla_cocina_view),
     path('api/pedidos-cocina/', api_listar_pedidos, name='api_pedidos_cocina'),

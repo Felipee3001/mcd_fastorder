@@ -134,16 +134,9 @@
             const contenedor = document.getElementById('seccion-favorito');
             if (!contenedor) return;
 
-            if (!localStorage.getItem('mcd_favorito_id')) {
-                // Forzamos que guarde el ID favorito como texto de 15 caracteres máximo
-                localStorage.setItem('mcd_favorito_id', "1");
-            }
-            const favId = localStorage.getItem('mcd_favorito_id');
-
-            // Homologamos la búsqueda convirtiendo ambos lados a String puro (.toString())
-            const prodFavorito = PRODUCTOS_REALES.find(p => p.idProducto.toString() === favId);
-            const tieneStock = prodFavorito ? prodFavorito.disponibleStock === 1 : false;
-
+            const favId = PRODUCTO_FAVORITO_ID.toString();
+            const prodFavorito = PRODUCTOS_REALES.find(p => p.id.toString() === favId);
+            const tieneStock = prodFavorito ? prodFavorito.disponible === 1 : false;
 
             if (tieneStock) {
                 contenedor.innerHTML = `
@@ -169,19 +162,19 @@
             if (!lista) return;
 
             lista.innerHTML = PRODUCTOS_REALES.map(p => {
-                const estaDisponible = p.disponibleStock === 1;
+                const estaDisponible = p.disponible === 1;
                 const textoBoton = estaDisponible ? '+ Añadir' : 'Sin Stock';
                 const estilosBoton = estaDisponible 
                     ? 'class="btn-express"' 
                     : 'class="btn-express" style="background-color: #fee2e2; color: #ef4444; border-color: #fca5a5; cursor: not-allowed;" disabled';
 
-                const accionBoton = estaDisponible ? `onclick="agregarAlCarrito('${p.idProducto.toString()}')"` : '';
-
+                const accionBoton = estaDisponible ? `onclick="agregarAlCarrito('${p.id.toString()}')"` : '';
+            
                 return `
                     <div class="producto-card">
                         <div>
-                            <p class="prod-nombre">${p.nombreProducto}</p>
-                            <p class="prod-precio">$${p.precioProducto.toLocaleString('es-CL')}</p>
+                            <p class="prod-nombre">${p.nombre}</p>
+                            <p class="prod-precio">$${p.precio.toLocaleString('es-CL')}</p>
                         </div>
                         <button ${accionBoton} ${estilosBoton}>${textoBoton}</button>
                     </div>
@@ -211,24 +204,23 @@
         function actualizarBarraCarrito() {
             const totalProductos = Object.values(carritoExpress).reduce((a, b) => a + b, 0);
             document.getElementById('cantidad-items').innerText = `${totalProductos} ${totalProductos === 1 ? 'producto' : 'productos'}`;
-
+                
             let cuentaTotal = 0;
             Object.keys(carritoExpress).forEach(id => {
-                // Homologamos la búsqueda de totales convirtiendo a String (.toString())
-                const prod = PRODUCTOS_REALES.find(p => p.idProducto.toString() === id.toString());
-                if (prod) cuentaTotal += prod.precioProducto * carritoExpress[id];
+                const prod = PRODUCTOS_REALES.find(p => p.id.toString() === id.toString());
+                if (prod) cuentaTotal += prod.precio * carritoExpress[id];
             });
             document.getElementById('precio-total').innerText = `$${cuentaTotal.toLocaleString('es-CL')}`;
-
+        
             const btn = document.getElementById('btn-enviar');
             const visor = document.getElementById('visor-detalles');
-
+        
             if (totalProductos > 0) {
                 btn.removeAttribute('disabled');
                 visor.style.display = 'block';
-
+            
                 visor.innerHTML = Object.keys(carritoExpress).map(id => {
-                    const prod = PRODUCTOS_REALES.find(p => p.idProducto.toString() === id.toString());
+                    const prod = PRODUCTOS_REALES.find(p => p.id.toString() === id.toString());
                     const cant = carritoExpress[id];
                     return `
                         <div class="item-carrito-linea">

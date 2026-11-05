@@ -100,7 +100,7 @@ def procesar_pedido_express(request):
     except Exception as e:
         return JsonResponse({'error': 'Falla interna del servidor local', 'detalle': str(e)}, status=500)
 
-@ensure_csrf_cookie # 🌟 Fuerza la inyección de la cookie CSRF al renderizar el menú
+@ensure_csrf_cookie
 def menu_cliente_view(request, id_cliente):
     """Busca los productos en la BD y los pasa al HTML con su stock real"""
     productos_db = Producto.objects.all().order_by('idProducto')
@@ -109,7 +109,7 @@ def menu_cliente_view(request, id_cliente):
         lista_productos.append({
             'id': p.idProducto,
             'nombre': p.nombreProducto,
-            'precio': p.precioBase,
+            'precio': int(p.precioBase), # ✨ CLAVE: Convertimos a entero para que json.dumps funcione
             'disponible': 1 if p.disponibleStock else 0
         })
         

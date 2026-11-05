@@ -114,6 +114,28 @@
         </div>
     </div>
 
+    <!-- 🌟 MODAL POST-VENTA INTERACTIVO -->
+    <div id="modal-post-compra" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); z-index: 100; display: none; justify-content: center; align-items: center; box-sizing: border-box; padding: 1rem;">
+        <div style="background-color: white; max-width: 24rem; width: 100%; padding: 2rem; border-radius: 1rem; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 3px solid #facc15;">
+            <span style="font-size: 3rem;">🎉</span>
+            <h2 style="color: #dc2626; font-size: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.25rem;">¡Orden Transmitida!</h2>
+            <p id="modal-ticket-id" style="font-weight: bold; color: #10b981; margin-bottom: 1.5rem; font-size: 1.1rem;">Ticket #00000</p>
+            
+            <p style="color: #4b5563; font-size: 0.95rem; margin-bottom: 2rem; font-weight: 500;">Tu pedido ya está en preparación en el monitor de cocina. ¿Qué deseas hacer ahora?</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <!-- Opción Comprar Algo Más -->
+                <button onclick="cerrarModalPostCompra()" style="width: 100%; background-color: #facc15; color: #b91c1c; font-weight: bold; padding: 1rem; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    🍔 Seguir Comprando
+                </button>
+                <!-- Opción Cerrar Sesión -->
+                <a href="/" style="width: 100%; background-color: #e5e7eb; color: #374151; font-weight: bold; padding: 1rem; border: none; border-radius: 0.5rem; text-decoration: none; display: inline-block; box-sizing: border-box; font-size: 1rem;">
+                    🚪 Cerrar Sesión
+                </a>
+            </div>
+        </div>
+    </div>
+
     <script id="productos-data" type="application/json">
         {{ productos_json|safe }}
     </script>
@@ -297,7 +319,6 @@
             mostrarAlerta('Procesando orden express...', '#2563eb');
             const startTime = performance.now();
 
-            // 🌟 CORRECCIÓN EXTRA: Extracción indexada posicional de la cabecera CSRF de Django
             const cookies = document.cookie.split('; ');
             const cookieCsrf = cookies.find(row => row.startsWith('csrftoken='));
             const tokenSeguro = cookieCsrf ? cookieCsrf.split('=')[1] : '';
@@ -315,19 +336,41 @@
                         nombreLlamado: nombreLlamado
                     })
                 });
-
+            
                 const resultado = await respuesta.json();
                 const endTime = performance.now();
                 const latencia = ((endTime - startTime) / 1000).toFixed(3);
-
+            
                 if (respuesta.ok) {
                     mostrarAlerta(`🎉 ¡ÉXITO! Ticket #${resultado.idPedido} enviado a cocina en ${latencia}s.`, '#16a34a');
+
+                    // 🌟 ACTIVACIÓN DEL MODAL: Inyectamos el ID del ticket y abrimos la ventana interactiva
+                    const modal = document.getElementById('modal-post-compra');
+                    const textoTicket = document.getElementById('modal-ticket-id');
+                    if (modal && textoTicket) {
+                        textoTicket.innerText = `Ticket #${resultado.idPedido.toString().includes('TKT-') ? resultado.idPedido.slice(-5) : resultado.idPedido}`;
+                        setTimeout(() => {
+                            modal.style.display = 'flex';
+                        }, 400); // Pequeña pausa estética para que el usuario procese el éxito inicial
+                    }
                 } else {
                     mostrarAlerta(`❌ Error: ${resultado.error} -> Detalle: ${resultado.detalle || 'Falla'}`, '#dc2626');                
                 }
             } catch (error) {
                 console.error(error);
                 mostrarAlerta('❌ Error de red: Verifica tus configuraciones de URL de Django', '#b91c1c');
+            }
+        }
+
+        // 🍔 FUNCIÓN AUXILIAR: Limpia el input de identificación y oculta el modal para permitir otra compra
+        function cerrarModalPostCompra() {
+            const modal = document.getElementById('modal-post-compra');
+            const inputNombre = document.getElementById('input-nombre-llamado');
+            if (modal) modal.style.display = 'none';
+            if (inputNombre) {
+                inputNombre.value = ''; // Limpia el nombre del cliente anterior para la nueva orden
+                inputNombre.style.borderColor = "#d1d5db";
+                inputNombre.style.backgroundColor = "#ffffff";
             }
         }
 
@@ -343,6 +386,7 @@
                 }
             }, 5000);
         }
+        
     </script>
 </body>
 </html>

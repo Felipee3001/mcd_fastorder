@@ -66,12 +66,12 @@ WSGI_APPLICATION = 'mcd_fastorder_backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+DATABASE_URL = os.environ.get('database_url', 'postgresql://mcd_db_5o9s_user:x4osz3R3II4z8vApWONgJ1DSEzxWwla3@dpg-dbm088lbedkc73aqhbi0-a/mcd_db_5o9s')
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://mcd_db_5o9s_user:x4osz3R3II4z8vApWONgJ1DSEzxWwla3@dpg-dbm088lbedkc73aqhbi0-a/mcd_db_5o9s'
+        default=DATABASE_URL
     )
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

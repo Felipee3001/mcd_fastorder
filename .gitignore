@@ -1,0 +1,15 @@
+# Python compilado
+__pycache__/
+*.pyc
+
+# Base de datos local (si usas SQLite de prueba)
+db.sqlite3
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+
+# Carpetas del sistema o del editor
+.vscode/
+.DS_Store

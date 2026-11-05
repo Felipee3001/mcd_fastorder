@@ -1,0 +1,159 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>McD-FastOrder - Monitor de Cocina</title>
+    <style>
+        body { background-color: #10192c; color: #f9fafb; font-family: sans-serif; margin: 0; padding: 1.5rem; }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #374151; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+        header h1 { color: #ffcc00; margin: 0; font-size: 34px; }
+        .grid-pedidos { display: grid; grid-template-columns: repeat(auto-fill, minmax(20rem, 3fr)); gap: 2,5rem; }
+        .card-pedido { 
+            background-color: #ff480088; 
+            border: 4px solid #e900cad5; 
+            border-radius: 35px; 
+            padding: 1.5rem; /* Subió de 1rem a 1.5rem para dar más espacio interno */
+            margin: 15px;
+            box-shadow: 3px 3px 3px 3px rgba(0, 255, 234, 0.863); 
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .card-header { display: flex; justify-content: space-between; border-bottom: 1px solid #055fee; padding-bottom: 0.5rem; margin-bottom: 0.5rem; }
+        .order-id { font-size: 1.25rem; font-weight: bold; color: #facc15; }
+        .time { font-size: 0.85rem; color: #9ca3af; align-self: center; }
+        ul { list-style: none; padding: 0; margin: 0 0 1rem 0; }
+        li { font-size: 1.1rem; font-weight: 600; padding: 0.25rem 0; border-bottom: 1px dashed #0651c9; }
+        li:last-child { border-bottom: none; }
+        .btn-despacho { width: 100%; background-color: #10c762; color: white; border: none; font-weight: bold; padding: 0.5rem; border-radius: 0.5rem; cursor: pointer; transition: background 0.2s; }
+        .btn-despacho:hover { background-color: #059669; }
+        .no-orders { text-align: center; color: #6b7280; font-size: 1.2rem; grid-column: 1 / -1; padding: 3rem; }
+        
+        #notificacion-toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #059669;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: bold;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🍔 Monitor de Cocina - McD-FastOrder</h1>
+        <div style="font-weight: bold; color: #00ffaa;">● Línea Express Activa</div>
+    </header>
+
+    <main class="grid-pedidos" id="contenedor-cocina">
+        <div class="no-orders">Buscando nuevos pedidos express...</div>
+    </main>
+
+    <div id="notificacion-toast"></div>
+
+    <script>
+        // 🍳 ESTA FUNCIÓN SOLO DEBE LEER LOS DATOS, NUNCA LLEVAR RECARGAS COMPLETAS
+        async function cargarPedidosCocina() {
+            try {
+                const respuesta = await fetch('/api/pedidos-cocina/');
+                const datos = await respuesta.json();
+                const contenedor = document.getElementById('contenedor-cocina');
+                
+                if (datos.pedidos.length === 0) {
+                    contenedor.innerHTML = '<div class="no-orders">🍔 Sin pedidos pendientes en la línea express.</div>';
+                    return;
+                }
+                
+                contenedor.innerHTML = datos.pedidos.map(p => `
+                    <div class="card-pedido">
+                        <div class="card-header">
+                            <!-- 🌟 RECORTE VISUAL: Si el ID contiene 'TKT-', muestra solo los últimos 5 dígitos para que sea legible -->
+                            <span class="order-id">Ticket #${p.idPedido.toString().includes('TKT-') ? p.idPedido.slice(-5) : p.idPedido}</span>
+                            <span class="time">${p.timestamp}</span>
+                        </div>
+                        <ul>
+                            ${p.items.map(item => `<li>⚠️ ${item.cantidad}x ${item.producto}</li>`).join('')}
+                        </ul>
+
+                        <!-- CON ESTO SE RENDERIZA EL NOMBRE ABAJO EN LA TARJETA -->
+                        <div style="background-color: #456400; padding: 0.5rem; text-align: center; border-radius: 0.25rem; font-weight: bold; color: #facc15; font-size: 0.95rem; margin-bottom: 0.75rem;">
+                            👤 LLAMAR A: ${p.nombreLlamado ? p.nombreLlamado.toUpperCase() : 'CLIENTE EXPRESS'}
+                        </div>
+                    
+                        <!-- 💥 SOLUCIÓN AL BUG: Envolvemos \${p.idPedido} con comillas simples '\${p.idPedido}' para que JavaScript lo procese como texto y el botón funcione -->
+                        <button class="btn-despacho" onclick="despacharPedido('${p.idPedido}')">✓ Entregar</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error("Error cargando la pantalla de cocina:", error);
+            }
+        }
+
+        // 🚀 DESPACHO INMEDIATO ATÓMICO EN SEGUNDO PLANO
+        async function despacharPedido(id) {
+            const toast = document.getElementById('notificacion-toast');
+
+            // 1. Mostrar feedback visual de éxito de inmediato en el navegador
+            toast.innerText = `✅ Ticket #${id} entregado a la zona express con éxito`;
+            toast.style.display = 'block';
+
+            // 2. Localizar la tarjeta HTML (card-pedido) y ocultarla inmediatamente
+            const evento = window.event;
+            const botonPresionado = evento ? evento.target : null;
+            let tarjetaPedido = null;
+
+            if (botonPresionado) {
+                tarjetaPedido = botonPresionado.closest('.card-pedido');
+                if (tarjetaPedido) {
+                    tarjetaPedido.style.display = 'none'; // ¡Desaparece al instante para el cocinero!
+                }
+            }
+        
+            // 3. Procesamiento en segundo plano: Notificar al backend de Django
+            try {
+                const respuesta = await fetch(`/api/despachar/${id}/`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}' // Autenticación de seguridad nativa de Django
+                    }
+                });
+            
+                if (!respuesta.ok) {
+                    throw new Error("Falla en el servidor");
+                }
+
+            } catch (error) {
+                console.error("Error al actualizar en el servidor:", error);
+
+                // 4. Plan de contingencia: Si la red falla, la tarjeta vuelve a aparecer
+                if (tarjetaPedido) {
+                    tarjetaPedido.style.display = 'block'; 
+                }
+                toast.innerText = `❌ Error de red: No se pudo actualizar el Ticket #${id} en el servidor`;
+                toast.style.backgroundColor = '#dc2626';
+            }
+        
+            // Ocultar el mensaje flotante después de 2 segundos
+            setTimeout(() => {
+                toast.style.display = 'none';
+                toast.style.backgroundColor = '#059669'; // Restaurar color verde por defecto
+            }, 2000);
+        }
+
+        // 💥 CONSULTA DINÁMICA LIMPIA CADA 3 SEGUNDOS SIN RESETEAR LA PÁGINA
+        setInterval(cargarPedidosCocina, 3000);
+        document.addEventListener('DOMContentLoaded', cargarPedidosCocina);
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>McD-FastOrder - Acceso al Sistema</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-image: url('/static/fondo_mcd_fastorder.jpg');
+            background-size: 100% 100%;
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .contenedor-login {
+            width: 100%;
+            max-width: 24rem;
+            background-color: #f3f4f6;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
+            border: 2px solid #e5e7eb;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        header {
+            background-color: #dc2626;
+            color: white;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        h1 { margin: 0; font-size: 1.4rem; font-weight: bold; color: #facc15; }
+        
+        .selector-rol {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-rol {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid #d1d5db;
+            border-radius: 0.5rem;
+            background-color: white;
+            font-weight: bold;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-rol.activo {
+            background-color: #facc15;
+            border-color: #dc2626;
+            color: #b91c1c;
+        }
+
+        .formulario-credenciales {
+            display: none;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #4b5563;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            box-sizing: border-box;
+            font-size: 0.9rem;
+        }
+
+        .btn-ingresar {
+            width: 100%;
+            background-color: #10b981;
+            color: white;
+            font-weight: bold;
+            padding: 1rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-ingresar:active { transform: scale(0.98); }
+
+        #alerta-login {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="contenedor-login">
+        <header>
+            <h1>🍟 McD-FastOrder 🍟</h1>
+            <p style="margin: 4px 0 0 0; font-size: 0.75rem; opacity: 0.9;">Seleccione su perfil de acceso</p>
+        </header>
+
+        <div class="selector-rol">
+            <button type="button" id="btn-usuario" class="btn-rol activo" onclick="seleccionarRol('usuario')">👤 Usuario</button>
+            <button type="button" id="btn-admin" class="btn-rol" onclick="seleccionarRol('admin')">🛠️ Administrador</button>
+        </div>
+
+        <form id="formLogin" onsubmit="procesarLogin(event)">
+            <div id="campos-admin" class="formulario-credenciales">
+                <div>
+                    <label for="username">Nombre de Administrador</label>
+                    <input type="text" id="username" placeholder="Ej: admin_cocina">
+                </div>
+                <div>
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" placeholder="••••••••">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-ingresar">Ingresar al Sistema</button>
+        </form>
+
+        <div id="alerta-login"></div>
+    </div>
+
+    <script>
+        let rolSeleccionado = 'usuario';
+
+        // Credenciales asignadas para el Administrador
+        const ADMIN_USER = 'admin_cocina';
+        const ADMIN_PASS = 'mcd1234';
+
+        function seleccionarRol(rol) {
+            rolSeleccionado = rol;
+            const btnUsuario = document.getElementById('btn-usuario');
+            const btnAdmin = document.getElementById('btn-admin');
+            const camposAdmin = document.getElementById('campos-admin');
+            const alerta = document.getElementById('alerta-login');
+
+            alerta.style.display = 'none';
+
+            if (rol === 'usuario') {
+                btnUsuario.classList.add('activo');
+                btnAdmin.classList.remove('activo');
+                camposAdmin.style.display = 'none';
+            } else {
+                btnAdmin.classList.add('activo');
+                btnUsuario.classList.remove('activo');
+                camposAdmin.style.display = 'flex';
+                document.getElementById('username').focus();
+            }
+        }
+
+        function mostrarAlerta(mensaje, esError = false) {
+            const box = document.getElementById('alerta-login');
+            box.innerText = mensaje;
+            box.style.backgroundColor = esError ? '#dc2626' : '#16a34a';
+            box.style.display = 'block';
+        }
+
+        function procesarLogin(evento) {
+            evento.preventDefault();
+
+            if (rolSeleccionado === 'usuario') {
+                mostrarAlerta('Accediendo como cliente...');
+                setTimeout(() => {
+                    // Redirige al menú del cliente 1 usando tu url estructurada: 'cliente/<int:id_cliente>/'
+                    window.location.href = '/cliente/1/'; 
+                }, 800);
+            } else {
+                const userForm = document.getElementById('username').value.trim();
+                const passForm = document.getElementById('password').value;
+
+                if (userForm === ADMIN_USER && passForm === ADMIN_PASS) {
+                    mostrarAlerta('Credenciales válidas. Abriendo Monitor de Cocina...');
+                    setTimeout(() => {
+                        // Redirige a tu monitor usando tu url estructurada: 'cocina/'
+                        window.location.href = '/cocina/'; 
+                    }, 800);
+                } else {
+                    mostrarAlerta('❌ Usuario o contraseña incorrectos', true);
+                }
+            }
+        }
+    </script>
+</body>
+</html>

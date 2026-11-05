@@ -1,14 +1,59 @@
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.db import transaction
 import json
 import time
 from .models import Cliente, Producto, PedidoExpress, DetallePedido
 
+# ==========================================
+# 🔑 VISTAS DEL SISTEMA DE LOGIN Y ACCESO
+# ==========================================
+
+@ensure_csrf_cookie
+def vista_login(request):
+    """Renderiza la pantalla inicial de inicio de sesión inyectando la cookie CSRF"""
+    return render(request, 'login.html')
+
+def vista_index(request):
+    """Redirige al flujo nativo con el Cliente ID por defecto 1"""
+    return redirect('menu_express', id_cliente=1)
+
+def vista_cocina(request):
+    """Redirige directamente a la pantalla principal del monitor de cocina"""
+    return redirect('pantalla_cocina')
+
+
+# ==========================================
+# 🍔 VISTAS DE MONITORES Y PANTALLAS
+# ==========================================
+
 def pantalla_cocina_view(request):
     """Renderiza la vista HTML del monitor de cocina"""
     return render(request, 'cocina.html')
+
+@ensure_csrf_cookie
+def menu_cliente_view(request, id_cliente):
+    """Busca los productos en la BD y los pasa al HTML con su stock real"""
+    productos_db = Producto.objects.all().order_by('idProducto')
+    lista_productos = []
+    for p in productos_db:
+        lista_productos.append({
+            'id': p.idProducto,
+            'nombre': p.nombreProducto,
+            'precio': int(p.precioBase), # ✨ CLAVE: Convertimos a entero para que json.dumps funcione
+            'disponible': 1 if p.disponibleStock else 0
+        })
+        
+    return render(request, 'index.html', {
+        'id_cliente': id_cliente,
+        'productos_json': json.dumps(lista_productos)
+    })
+
+
+# ==========================================
+# ⚙️ VISTAS DE API (PROCESAMIENTO ASÍNCRONO)
+# ==========================================
 
 @csrf_exempt
 def procesar_pedido_express(request):
@@ -83,7 +128,7 @@ def procesar_pedido_express(request):
             for d in detalles_a_crear:
                 DetallePedido.objects.create(
                     idPedido=pedido,
-                    idProducto=d['producto'],
+                    idProducto=d['idProducto'],
                     cantidad=d['cantidad'],
                     subtotal=d['subtotal']
                 )
@@ -99,24 +144,6 @@ def procesar_pedido_express(request):
         return JsonResponse({'error': 'JSON inválido'}, status=400)
     except Exception as e:
         return JsonResponse({'error': 'Falla interna del servidor local', 'detalle': str(e)}, status=500)
-
-@ensure_csrf_cookie
-def menu_cliente_view(request, id_cliente):
-    """Busca los productos en la BD y los pasa al HTML con su stock real"""
-    productos_db = Producto.objects.all().order_by('idProducto')
-    lista_productos = []
-    for p in productos_db:
-        lista_productos.append({
-            'id': p.idProducto,
-            'nombre': p.nombreProducto,
-            'precio': int(p.precioBase), # ✨ CLAVE: Convertimos a entero para que json.dumps funcione
-            'disponible': 1 if p.disponibleStock else 0
-        })
-        
-    return render(request, 'index.html', {
-        'id_cliente': id_cliente,
-        'productos_json': json.dumps(lista_productos)
-    })
 
 def api_listar_pedidos(request):
     """Lista todas las órdenes en preparación para la pantalla de cocina"""

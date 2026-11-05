@@ -51,7 +51,14 @@
 
     <header>
         <h1>🍔 Monitor de Cocina - McD-FastOrder</h1>
-        <div style="font-weight: bold; color: #00ffaa;">● Línea Express Activa</div>
+        <div style="display: flex; align-items: center; gap: 1.5rem;">
+            <div style="font-weight: bold; color: #00ffaa;">● Línea Express Activa</div>
+            
+            <!-- Botón Cerrar Sesión -->
+            <a href="/" style="color: #ff4800; font-size: 0.9rem; font-weight: bold; text-decoration: none; border: 2px solid #ff4800; padding: 0.4rem 0.8rem; border-radius: 0.5rem; background: transparent; transition: all 0.2s;" onmouseover="this.style.background='#ff4800'; this.style.color='white'" onmouseout="this.style.background='transparent'; this.style.color='#ff4800'">
+                🚪 Salir del Monitor
+            </a>
+        </div>
     </header>
 
     <main class="grid-pedidos" id="contenedor-cocina">

@@ -18,4 +18,8 @@ urlpatterns = [
     path('api/pedidos-cocina', api_listar_pedidos),
     path('api/despachar/<str:id_pedido>/', cambiar_estado_pedido, name='cambiar_estado_pedido'),
     path('api/despachar/<str:id_pedido>', cambiar_estado_pedido),
+    path('', views.vista_login, name='login'),
+    path('fastOrder/express/', views.vista_index, name='index'),
+    path('api/pedidos-cocina/monitor/', views.vista_cocina, name='cocina'),
+
 ]

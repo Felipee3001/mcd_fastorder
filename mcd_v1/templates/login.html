@@ -11,7 +11,7 @@
             padding: 0;
             min-height: 100vh;
             background-image: url('/static/fondo_mcd_fastorder.jpg');
-            background-size: 100% 100%;
+            background-size: cover; /* 🌟 Ajuste responsivo para el fondo */
             background-position: center center;
             background-repeat: no-repeat;
             background-attachment: fixed;
@@ -19,13 +19,15 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            box-sizing: border-box;
+            padding: 1rem;
         }
 
         .contenedor-login {
             width: 100%;
-            max-width: 24rem;
+            max-width: 24rem; /* No se estira más de esto en monitores */
             background-color: #f3f4f6;
-            padding: 2rem;
+            padding: 1.5rem;
             border-radius: 1rem;
             box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
             border: 2px solid #e5e7eb;
@@ -46,7 +48,7 @@
         
         .selector-rol {
             display: flex;
-            gap: 1rem;
+            gap: 0.75rem;
             margin-bottom: 1.5rem;
         }
 
@@ -60,6 +62,11 @@
             color: #374151;
             cursor: pointer;
             transition: all 0.2s;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
         }
 
         .btn-rol.activo {
@@ -115,6 +122,13 @@
             font-size: 0.9rem;
             display: none;
         }
+
+        /* 📱 RESPONSIVO: Ajustes finos para pantallas muy pequeñas (celulares antiguos) */
+        @media (max-width: 360px) {
+            .contenedor-login { padding: 1rem; }
+            h1 { font-size: 1.2rem; }
+            .btn-rol { font-size: 0.8rem; padding: 0.6rem 0.2rem; }
+        }
     </style>
 </head>
 <body>
@@ -127,7 +141,7 @@
 
         <div class="selector-rol">
             <button type="button" id="btn-usuario" class="btn-rol activo" onclick="seleccionarRol('usuario')">👤 Usuario</button>
-            <button type="button" id="btn-admin" class="btn-rol" onclick="seleccionarRol('admin')">🛠️ Administrador</button>
+            <button type="button" id="btn-admin" class="btn-rol" onclick="seleccionarRol('admin')">🛠️ Admin</button>
         </div>
 
         <form id="formLogin" onsubmit="procesarLogin(event)">
@@ -150,10 +164,8 @@
 
     <script>
         let rolSeleccionado = 'usuario';
-
-        // Credenciales asignadas para el Administrador
-        const ADMIN_USER = 'felipenuñez';
-        const ADMIN_PASS = 'inacapfelipe';
+        const ADMIN_USER = 'admin_cocina';
+        const ADMIN_PASS = 'mcd1234';
 
         function seleccionarRol(rol) {
             rolSeleccionado = rol;
@@ -189,7 +201,6 @@
             if (rolSeleccionado === 'usuario') {
                 mostrarAlerta('Accediendo como cliente...');
                 setTimeout(() => {
-                    // Redirige al menú del cliente 1 usando tu url estructurada: 'cliente/<int:id_cliente>/'
                     window.location.href = '/cliente/1/'; 
                 }, 800);
             } else {
@@ -199,7 +210,6 @@
                 if (userForm === ADMIN_USER && passForm === ADMIN_PASS) {
                     mostrarAlerta('Credenciales válidas. Abriendo Monitor de Cocina...');
                     setTimeout(() => {
-                        // Redirige a tu monitor usando tu url estructurada: 'cocina/'
                         window.location.href = '/cocina/'; 
                     }, 800);
                 } else {
